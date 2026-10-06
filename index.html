@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>just for you 💌</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;background:#050505;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;overflow:hidden}
+body{touch-action:manipulation}
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#050505;overflow:hidden}
+.screen.active{display:flex}
+button,input{font:inherit}
+button{cursor:pointer}
+#intro{cursor:pointer;background:#000}
+#introVideo{width:100%;height:100%;object-fit:contain;background:#000}
+.intro-cover{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0 20px 8%;background:linear-gradient(transparent 55%,rgba(0,0,0,.5));pointer-events:none}
+#startBtn{pointer-events:auto;border:0;border-radius:999px;padding:16px 24px;background:#fff;color:#111;font-weight:800;box-shadow:0 12px 45px #0009}
+#startBtn small{display:block;margin-top:3px;font-size:11px;opacity:.55;font-weight:600}
+#scare{background:#000;animation:shake .09s linear 0s 14}
+#scare img{width:100%;height:100%;object-fit:cover}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;animation:flash .18s ease-out}
+@keyframes flash{0%{opacity:1}100%{opacity:0}}
+@keyframes shake{0%,100%{transform:translate(0)}25%{transform:translate(-12px,7px)}50%{transform:translate(12px,-7px)}75%{transform:translate(-8px,-4px)}}
+.card{width:min(88%,420px);padding:32px 25px;border-radius:28px;background:#171717ef;border:1px solid #fff1;box-shadow:0 25px 80px #000b;text-align:center;backdrop-filter:blur(14px)}
+.card h1{margin:0 0 8px;font-size:30px}.card p{color:#aaa;font-size:14px;margin:0 0 20px}
+#pw{width:100%;padding:15px;border-radius:15px;border:1px solid #333;background:#090909;color:#fff;text-align:center;letter-spacing:4px;outline:0}
+#enter{width:100%;margin-top:12px;padding:15px;border:0;border-radius:15px;background:#fff;color:#111;font-weight:800}
+#error{height:20px;margin-top:9px;color:#ff7777;font-size:13px;opacity:0}.show{opacity:1!important}
+#question{text-align:center;background:radial-gradient(circle at 50% 25%,#28221f,#080707 65%)}
+.q{width:min(92%,600px);padding:30px}.tiny{color:#aaa;font-size:14px;margin-bottom:15px}
+.q h2{font-size:clamp(42px,10vw,72px);line-height:1;margin:0 0 35px;letter-spacing:-3px}
+.buttons{display:flex;gap:14px;justify-content:center}.choice{padding:16px 27px;border-radius:999px;font-size:18px;font-weight:800;border:0}
+.yes{background:#fff;color:#111}.no{background:#222;color:#fff;border:1px solid #444}
+#branch video,#hasbulla video{width:100%;height:100%;object-fit:contain;background:#000}
+#money{flex-direction:column;text-align:center;background:radial-gradient(circle,#281f23,#080607 68%)}
+#money h2{font-size:clamp(46px,11vw,88px);letter-spacing:-4px;margin:0;font-weight:900}
+.emojis{display:flex;gap:20px;font-size:clamp(36px,9vw,70px);margin-top:20px}.emojis span{display:inline-block;animation:float 1.45s ease-in-out infinite}.emojis span:nth-child(2){animation-delay:.15s}.emojis span:nth-child(3){animation-delay:.3s}.emojis span:nth-child(4){animation-delay:.45s}
+@keyframes float{50%{transform:translateY(-14px) rotate(5deg)}}
+#coin{padding:18px;background:#050505}#coin img{max-width:100%;max-height:100%;border-radius:12px}
+.fade{animation:fade .35s ease}@keyframes fade{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<section id="intro" class="screen active">
+  <video id="introVideo" playsinline webkit-playsinline preload="auto" muted></video>
+  <div class="intro-cover"><button id="startBtn">tap anywhere to begin 👀<small>yes, actually tap this</small></button></div>
+</section>
+<section id="scare" class="screen"><img src="assets/lizard.svg" alt="A creepy lizard"><div class="flash"></div></section>
+<section id="password" class="screen"><div class="card"><h1>okay, password time 🔐</h1><p>You know it. Don't pretend you don't.</p><input id="pw" type="password" inputmode="numeric" autocomplete="off" placeholder="enter password"><button id="enter">Enter</button><div id="error">nah 😭 try again</div></div></section>
+<section id="question" class="screen"><div class="q"><div class="tiny">one very important question...</div><h2>Is it your birthday?</h2><div class="buttons"><button id="yes" class="choice yes">YES 🎂</button><button id="no" class="choice no">NO 💀</button></div></div></section>
+<section id="branch" class="screen"><video id="branchVideo" playsinline webkit-playsinline preload="auto"></video></section>
+<section id="money" class="screen"><h2>paise bhej do</h2><div class="emojis"><span>🥺</span><span>👉</span><span>👈</span><span>💸</span></div></section>
+<section id="coin" class="screen"><img src="assets/jethalal_coin.jpg" alt="Jethalal one rupee coin meme"></section>
+<section id="hasbulla" class="screen"><video id="hasbullaVideo" playsinline webkit-playsinline preload="auto" muted></video></section>
+<audio id="scary" preload="auto" src="assets/scary_clown.mp3"></audio>
+<audio id="fun" preload="auto" src="assets/dame_tu_cosita.mp3"></audio>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const screens = [...document.querySelectorAll('.screen')];
+  let started = false;
+  let branchChosen = false;
+
+  function show(id){
+    screens.forEach(s => s.classList.remove('active'));
+    const el = $(id);
+    el.classList.add('active','fade');
+    setTimeout(() => el.classList.remove('fade'), 450);
+  }
+
+  function unlockAudio(){
+    // Start the scary track silently during the user's first tap.
+    // Safari is much happier about later unmuting an audio element
+    // that was already started from a real user gesture.
+    const a = $('scary');
+    a.volume = 0;
+    a.currentTime = 0;
+    const p = a.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+
+  function startIntro(){
+    if(started) return;
+    started = true;
+    $('startBtn').style.display = 'none';
+    unlockAudio();
+    const v = $('introVideo');
+    v.src = 'assets/daya_intro.mp4';
+    v.load();
+    const p = v.play();
+    if(p && p.catch) p.catch(() => {
+      // If the browser refuses playback, one more direct tap will retry.
+      started = false;
+      $('startBtn').style.display = '';
+    });
+  }
+
+  $('startBtn').addEventListener('click', startIntro);
+  $('intro').addEventListener('click', e => { if(e.target !== $('startBtn')) startIntro(); });
+
+  $('introVideo').addEventListener('ended', () => {
+    show('scare');
+    const a = $('scary');
+    a.volume = 0.92;
+    a.currentTime = 0;
+    const p = a.play();
+    if(p && p.catch) p.catch(() => {});
+    setTimeout(() => {
+      a.pause(); a.currentTime = 0; a.volume = 0;
+      show('password');
+      setTimeout(() => $('pw').focus(), 80);
+    }, 2300);
+  });
+
+  function checkPassword(){
+    const input = $('pw');
+    if(input.value === '27022009'){
+      $('error').classList.remove('show');
+      const a = $('fun');
+      a.volume = .68; a.currentTime = 0;
+      const p = a.play();
+      if(p && p.catch) p.catch(() => {});
+      show('question');
+    } else {
+      $('error').classList.add('show');
+      input.value = '';
+      input.focus();
+      input.animate([{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:260});
+    }
+  }
+  $('enter').addEventListener('click', checkPassword);
+  $('pw').addEventListener('keydown', e => { if(e.key === 'Enter') checkPassword(); });
+
+  function playBranch(file){
+    if(branchChosen) return;
+    branchChosen = true;
+    $('fun').pause(); $('fun').currentTime = 0;
+    const v = $('branchVideo');
+    v.src = file; v.load(); show('branch');
+    const p = v.play();
+    if(p && p.catch) p.catch(() => {});
+  }
+  $('yes').addEventListener('click', () => playBranch('assets/daya_yes.mp4'));
+  $('no').addEventListener('click', () => playBranch('assets/no_branch.mp4'));
+
+  $('branchVideo').addEventListener('ended', () => {
+    show('money');
+    setTimeout(() => show('coin'), 2600);
+    setTimeout(() => {
+      show('hasbulla');
+      const h = $('hasbullaVideo');
+      h.src = 'assets/hasbulla.mp4'; h.load();
+      const p = h.play();
+      if(p && p.catch) p.catch(() => {});
+    }, 5800);
+  });
+})();
+</script>
+</body>
+</html>
